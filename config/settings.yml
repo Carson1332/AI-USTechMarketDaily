@@ -1,0 +1,112 @@
+lookback_hours: 30
+
+rank_weights:
+  coverage:  0.35
+  recency:   0.25
+  sentiment: 0.20
+  move:      0.20
+
+selection:
+  max_items_total: 12
+  dedupe_title_threshold: 85
+  min_items_per_theme: 1
+
+sources:
+  whitelist: []
+  blacklist: []
+
+model:
+  openrouter_model: "deepseek/deepseek-chat:online"
+
+telegram:
+  header_prefix: "📈 Daily Market Digest"
+  disable_web_page_preview: true
+  min_items_for_prose: 2
+
+timezone: "Australia/Perth"
+
+themes:
+  ai_compute:
+    label: "AI Compute & Chips"
+    leaders: [NVDA, AMD, AVGO, ASML, ARM, MRVL, TSM]
+    keywords: [chip, semiconductor, GPU, wafer, foundry, lithography, accelerator, EUV]
+
+  ai_infra:
+    label: "AI Infrastructure"
+    leaders: [ANET, VRT, DELL, SMCI, MU, WDC, CRDO]
+    keywords: [data center, networking, optical, switch, server, HBM, memory, liquid cooling, rack, interconnect]
+
+  ai_power:
+    label: "AI Power & Energy"
+    leaders: [VST, CEG, OKLO, GEV, TLN, BE, ENPH, FLNC, IREN, CORZ]
+    keywords: [nuclear, SMR, power purchase, grid, electricity demand, data center power, energy storage, battery, inverter]
+
+  cloud_apps:
+    label: "Cloud & AI Applications"
+    leaders: [MSFT, GOOGL, AMZN, ORCL, PLTR, META, NBIS, APLD]
+    keywords: [cloud, hyperscaler, Azure, AWS, GCP, model, copilot, enterprise AI, SaaS, inference]
+
+  robotics:
+    label: "Robotics & Automation"
+    leaders: [TSLA, ISRG, ROK, ABB, SYM, PATH]
+    keywords: [robot, humanoid, automation, actuator, surgical robot, warehouse automation, optimus]
+
+  quantum:
+    label: "Quantum Computing"
+    leaders: [IONQ, RGTI, QBTS, QUBT, IBM]
+    keywords: [quantum, qubit, quantum computing, error correction, quantum supremacy]
+
+  defense:
+    label: "Defense / Military"
+    leaders: [LMT, RTX, NOC, GD, LHX, ITA]
+    keywords: [defense, missile, fighter, Pentagon, military contract, NATO, munitions, hypersonic, drone]
+
+  defensive:
+    label: "Defensive (Risk-off)"
+    leaders: [PG, KO, JNJ, NEE, DUK, XLU, XLP, XLV]
+    keywords: [dividend, utility, consumer staples, healthcare, safe haven, risk-off, defensive rotation]
+
+  macro_other:
+    label: "Macro & Other"
+    leaders: []
+    keywords: [Fed, FOMC, rate cut, inflation, CPI, payrolls, jobs, tariff, treasury, yields, PBOC, stimulus, yuan, GDP, recession, oil]
+
+theme_order: [ai_compute, ai_infra, ai_power, cloud_apps, robotics, quantum, defense, defensive, macro_other]
+
+primary_theme_overrides:
+  BABA: cloud_apps
+  PDD:  cloud_apps
+  JD:   cloud_apps
+  BIDU: cloud_apps
+
+china_adrs: [BABA, PDD, JD, BIDU]
+
+# ETFs: fetch quotes only — company-news returns empty for these, wastes API calls
+etf_symbols: [XLU, XLP, XLV, XLK, ITA, EWH, MCHI, FXI, GLD, TLT]
+
+# Gauge tickers — broad market + safe havens + risk appetite
+# VIX: use symbol "VIX"; if Finnhub returns c=0 on live run, swap to "VIXY"
+gauges_tickers: [SPY, QQQ, IWM, TLT, GLD, UUP, HYG, VIX]
+
+# One ETF per sector for the scoreboard (sorted best-to-worst at runtime)
+scoreboard_etfs:
+  - {label: "半導體/AI晶片", etf: SMH}
+  - {label: "AI 應用",       etf: AIQ}
+  - {label: "雲計算",        etf: SKYY}
+  - {label: "機器人",        etf: BOTZ}
+  - {label: "量子",          etf: QTUM}
+  - {label: "網絡安全",      etf: CIBR}
+  - {label: "核電",          etf: NLR}
+  - {label: "光伏",          etf: TAN}
+  - {label: "儲能/鋰電",     etf: LIT}
+  - {label: "天然氣",        etf: FCG}
+  - {label: "太空",          etf: ARKX}
+  - {label: "軍工/國防",     etf: ITA}
+  - {label: "白銀",          etf: SLV}
+  - {label: "醫療",          etf: XLV}
+  - {label: "必需消費",      etf: XLP}
+  - {label: "工業",          etf: XLI}
+  - {label: "AI記憶體/DRAM", etf: DRAM}
+  - {label: "數據中心",      etf: DTCR}
+
+anchor_tickers: [NVDA, AMD, TSLA, MSFT, GOOGL, AMZN, META, AAPL, AVGO, MU, ANET, PLTR, LMT, RTX, VIXY]

@@ -1,0 +1,47 @@
+[
+  {
+    "headline": "Apple Eyes Deeper AI Integration Across iPhone Lineup in 2024",
+    "url": "https://example.com/apple-ai-iphone-2024",
+    "datetime": 1705312800,
+    "source": "TechCrunch",
+    "summary": "Apple is planning to integrate large language model capabilities directly into iOS 18, enabling on-device AI features without cloud dependency. The move positions Apple ahead of Samsung in the premium AI smartphone race.",
+    "related": "AAPL",
+    "category": "general"
+  },
+  {
+    "headline": "Tesla FSD v12 Rolls Out to All North America Customers",
+    "url": "https://example.com/tesla-fsd-v12-rollout",
+    "datetime": 1705309200,
+    "source": "Electrek",
+    "summary": "Tesla began deploying Full Self-Driving version 12 to its entire North American fleet, marking a shift to end-to-end neural network architecture. Elon Musk called it 'the most significant release in Tesla's history'.",
+    "related": "TSLA",
+    "category": "general"
+  },
+  {
+    "headline": "US Treasury Yields Climb as Strong Jobs Data Tempers Rate Cut Hopes",
+    "url": "https://example.com/treasury-yields-jobs-data",
+    "datetime": 1705298400,
+    "source": "Reuters",
+    "summary": "The 10-year Treasury yield rose to 4.18% after December non-farm payrolls came in at 216,000, well above the 170,000 consensus. The strong labor market gives the Fed cover to delay rate cuts, rattling bond markets.",
+    "related": "",
+    "category": "general"
+  },
+  {
+    "headline": "Hong Kong Regulator Approves First Spot Bitcoin ETFs in Asia",
+    "url": "https://example.com/hk-spot-bitcoin-etf-approval",
+    "datetime": 1705291200,
+    "source": "CoinDesk",
+    "summary": "Hong Kong's Securities and Futures Commission approved three spot Bitcoin ETFs, making Hong Kong the first Asian jurisdiction to offer direct crypto ETF exposure. The approval signals a bid to reclaim its position as Asia's leading financial hub.",
+    "related": "EWH",
+    "category": "general"
+  },
+  {
+    "headline": "Nasdaq Composite Reaches New All-Time High Amid Tech Earnings Rally",
+    "url": "https://example.com/nasdaq-all-time-high-jan24",
+    "datetime": 1705316400,
+    "source": "CNBC",
+    "summary": "The Nasdaq Composite closed at a record 16,832, surpassing its previous 2021 peak, as investors piled into AI-related technology stocks ahead of a heavy earnings season. Semiconductor stocks led the advance.",
+    "related": "",
+    "category": "general"
+  }
+]

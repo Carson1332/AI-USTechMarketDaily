@@ -1,0 +1,47 @@
+[
+  {
+    "headline": "Nvidia H200 GPU Shipments Begin, Doubling H100 Performance for AI Workloads",
+    "url": "https://example.com/nvidia-h200-shipments",
+    "datetime": 1705305600,
+    "source": "Tom's Hardware",
+    "summary": "Nvidia has commenced commercial shipments of its H200 Tensor Core GPU, offering 1.8x faster inference than the H100 for large language model workloads. Microsoft, Google, and Amazon are the first cloud providers to receive allocations.",
+    "related": "NVDA",
+    "category": "company"
+  },
+  {
+    "headline": "Nvidia Partners With Japan's SoftBank on AI Infrastructure Buildout",
+    "url": "https://example.com/nvidia-softbank-japan-ai",
+    "datetime": 1705294800,
+    "source": "Nikkei",
+    "summary": "Nvidia and SoftBank announced a strategic partnership to deploy AI computing infrastructure across Japan, with an initial investment of $500 million in Nvidia DGX SuperPOD systems. The deal underscores Asia's accelerating AI infrastructure race.",
+    "related": "NVDA",
+    "category": "company"
+  },
+  {
+    "headline": "Nvidia CEO Jensen Huang Signals CUDA Ecosystem Lock-In as Competitive Moat",
+    "url": "https://example.com/nvidia-cuda-moat-huang",
+    "datetime": 1705288200,
+    "source": "Bloomberg",
+    "summary": "At CES, Nvidia CEO Jensen Huang highlighted the 4 million developers in the CUDA ecosystem as the company's primary competitive advantage, making it difficult for AMD and Intel to capture significant AI accelerator market share.",
+    "related": "NVDA",
+    "category": "company"
+  },
+  {
+    "headline": "Alibaba Cloud Launches New AI Model Series to Compete With OpenAI",
+    "url": "https://example.com/alibaba-cloud-qwen-ai",
+    "datetime": 1705280400,
+    "source": "South China Morning Post",
+    "summary": "Alibaba Cloud introduced the Qwen 1.5 model series, claiming competitive performance with GPT-4 on several Chinese-language benchmarks. The launch is part of Alibaba's push to capture enterprise AI spending in Asia.",
+    "related": "BABA",
+    "category": "company"
+  },
+  {
+    "headline": "Alibaba International Commerce Segment Shows 44% Revenue Growth in Q3",
+    "url": "https://example.com/alibaba-international-q3-growth",
+    "datetime": 1705272600,
+    "source": "Reuters",
+    "summary": "Alibaba's international commerce division, including AliExpress and Lazada, reported 44% revenue growth in the third quarter, outpacing the domestic Taobao/Tmall segment. Management cited Southeast Asia and the Middle East as primary growth drivers.",
+    "related": "BABA",
+    "category": "company"
+  }
+]

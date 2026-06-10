@@ -11,7 +11,6 @@ _ROOT = Path(__file__).parent.parent
 _SETTINGS_PATH = _ROOT / "config" / "settings.yml"
 
 REQUIRED_SECRETS = [
-    "ALPHAVANTAGE_API_KEY",
     "FINNHUB_API_KEY",
     "OPENROUTER_API_KEY",
     "TELEGRAM_BOT_TOKEN",

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -16,13 +16,13 @@ def build_markdown(
     narrative: str,
     settings: dict,
     now_utc: datetime,
+    market_date: date,
     scoreboard: list[dict] | None = None,
 ) -> str:
     """Build the full archive Markdown document."""
+    date_str = market_date.isoformat()
     tz = ZoneInfo(settings.get("timezone", "Australia/Perth"))
-    local_dt = now_utc.astimezone(tz)
-    date_str = local_dt.strftime("%Y-%m-%d")
-    generated_at = local_dt.isoformat()
+    generated_at = now_utc.astimezone(tz).isoformat()
 
     active_themes = sorted({item.theme for item in items})
 
@@ -90,12 +90,10 @@ def build_markdown(
     return "\n".join(lines)
 
 
-def save(content: str, now_utc: datetime, archive_dir: Path, settings: dict) -> Path:
-    """Write the digest to archive/YYYY-MM-DD.md using Perth/AWST date."""
-    tz = ZoneInfo(settings.get("timezone", "Australia/Perth"))
-    local_date = now_utc.astimezone(tz).date()
+def save(content: str, now_utc: datetime, archive_dir: Path, settings: dict, market_date: date) -> Path:
+    """Write the digest to archive/YYYY-MM-DD.md using the US market date."""
     archive_dir.mkdir(parents=True, exist_ok=True)
-    path = archive_dir / f"{local_date.isoformat()}.md"
+    path = archive_dir / f"{market_date.isoformat()}.md"
     path.write_text(content, encoding="utf-8")
     logger.info("Archive written: %s", path)
     return path

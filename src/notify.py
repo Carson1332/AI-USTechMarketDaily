@@ -4,8 +4,7 @@ import html
 import logging
 import re
 from collections import defaultdict
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import date, datetime
 
 import httpx
 
@@ -75,12 +74,10 @@ def _format_item(item: NewsItem) -> str:
 def format_bullet_brief(
     items: list[NewsItem],
     settings: dict,
-    now_utc: datetime,
-    tz_name: str,
+    market_date: date,
 ) -> str:
     """One scannable message: all stories grouped by theme with tappable links."""
-    tz = ZoneInfo(tz_name)
-    date_str = now_utc.astimezone(tz).strftime("%d %b %Y")
+    date_str = market_date.strftime("%d %b %Y")
 
     by_theme: dict[str, list[NewsItem]] = defaultdict(list)
     for item in items:
@@ -107,12 +104,10 @@ def format_theme_block(
     label: str,
     summary_text: str,
     header_prefix: str,
-    now_utc: datetime,
-    tz_name: str,
+    market_date: date,
 ) -> str:
     """LLM prose analysis for one theme — links live in the bullet brief, not here."""
-    tz = ZoneInfo(tz_name)
-    date_str = now_utc.astimezone(tz).strftime("%d %b %Y")
+    date_str = market_date.strftime("%d %b %Y")
 
     parts = [f"<b>{_escape(header_prefix)} — {_escape(label)} | {date_str}</b>", ""]
 
@@ -191,20 +186,19 @@ def send_digest(
     narrative: str,
     settings: dict,
     now_utc: datetime,
+    market_date: date,
     scoreboard: list[dict] | None = None,
 ) -> None:
     """Send the daily digest: header → narrative → bullet brief."""
     tg_cfg = settings.get("telegram", {})
     header_prefix = tg_cfg.get("header_prefix", "📈 Daily Market Digest")
     disable_preview = tg_cfg.get("disable_web_page_preview", True)
-    tz_name = settings.get("timezone", "Australia/Perth")
 
     if not items:
         send_message(token, chat_id, "📰 No significant news today.", disable_preview)
         return
 
-    tz = ZoneInfo(tz_name)
-    date_str = now_utc.astimezone(tz).strftime("%d %b %Y")
+    date_str = market_date.strftime("%d %b %Y")
     total = len(items)
 
     # 1. Header — date + count + regions + compact scoreboard
@@ -232,6 +226,6 @@ def send_digest(
             send_message(token, chat_id, chunk, disable_preview)
 
     # 3. Bullet brief — all story links grouped by theme
-    brief = format_bullet_brief(items, settings, now_utc, tz_name)
+    brief = format_bullet_brief(items, settings, market_date)
     for chunk in split_message(brief):
         send_message(token, chat_id, chunk, disable_preview)

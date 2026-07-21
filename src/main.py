@@ -15,7 +15,7 @@ import httpx
 
 from src import (
     config, dedupe, fetch_finnhub, fetch_indicators,
-    normalize, notify, rank, store, summarize, tag,
+    market_calendar, normalize, notify, rank, store, summarize, tag,
 )
 
 logging.basicConfig(
@@ -61,6 +61,14 @@ def main() -> None:
         secrets = config.load_secrets()
 
     now_utc = datetime.now(timezone.utc)
+    ny_tz = ZoneInfo("America/New_York")
+    market_date = now_utc.astimezone(ny_tz).date()
+    market_date_str = market_date.isoformat()
+
+    if not mock and not market_calendar.is_us_market_open(market_date):
+        logger.info("US market closed on %s — skipping digest", market_date_str)
+        return
+
     cutoff = now_utc - timedelta(hours=settings.get("lookback_hours", 30))
 
     # Build theme helpers from config
@@ -169,9 +177,7 @@ def main() -> None:
                 logger.info("VIX spot unavailable, using VIXY as proxy")
 
     indicators = {"fear_greed": fear_greed}
-
-    tz = ZoneInfo(settings.get("timezone", "Australia/Perth"))
-    date_str = now_utc.astimezone(tz).strftime("%Y-%m-%d")
+    date_str = market_date_str
 
     logger.info(
         "Market data ready: %d scoreboard ETFs, %d gauges, fear_greed=%s",
@@ -191,8 +197,8 @@ def main() -> None:
                 )
             except Exception as e:
                 logger.error("Telegram send failed: %s", e)
-        content = store.build_markdown([], "", settings, now_utc, scoreboard=scoreboard)
-        store.save(content, now_utc, Path("archive"), settings)
+        content = store.build_markdown([], "", settings, now_utc, market_date=market_date, scoreboard=scoreboard)
+        store.save(content, now_utc, Path("archive"), settings, market_date=market_date)
         return
 
     # Sort by rank_score so items[0] leads
@@ -221,8 +227,8 @@ def main() -> None:
             logger.warning("Summarization failed, continuing without narrative: %s", e)
 
     # ── 10. STORE ─────────────────────────────────────────────────────────────
-    content = store.build_markdown(items, narrative, settings, now_utc, scoreboard=scoreboard)
-    archive_path = store.save(content, now_utc, Path("archive"), settings)
+    content = store.build_markdown(items, narrative, settings, now_utc, market_date=market_date, scoreboard=scoreboard)
+    archive_path = store.save(content, now_utc, Path("archive"), settings, market_date=market_date)
     logger.info("Archive: %s", archive_path)
 
     # ── 11. NOTIFY ────────────────────────────────────────────────────────────
@@ -239,6 +245,7 @@ def main() -> None:
                 narrative=narrative,
                 settings=settings,
                 now_utc=now_utc,
+                market_date=market_date,
                 scoreboard=scoreboard,
             )
             logger.info("Telegram: digest sent successfully")

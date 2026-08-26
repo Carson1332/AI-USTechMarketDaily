@@ -1,0 +1,477 @@
+{
+ "captured_at": "2026-08-26T02:15:05.095950+00:00",
+ "window_days": 21,
+ "countries": [
+  "United States"
+ ],
+ "events": [
+  {
+   "title": "US July PCE Price Index Monthly Rate",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": -0.1,
+   "consensus": 0.1,
+   "actual": null
+  },
+  {
+   "title": "US July PCE Price Index Annual Rate",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 3.7,
+   "consensus": 3.6,
+   "actual": null
+  },
+  {
+   "title": "U.S. core PCE price index monthly rate in July",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 0.1,
+   "consensus": 0.2,
+   "actual": null
+  },
+  {
+   "title": "U.S. core PCE price index annual rate in July",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 3.3,
+   "consensus": 3.3,
+   "actual": null
+  },
+  {
+   "title": "Monthly rate of U.S. durable goods orders in July",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 0.5,
+   "consensus": 0.5,
+   "actual": null
+  },
+  {
+   "title": "Monthly rate of U.S. durable goods orders excluding transportation in July",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 0.7,
+   "consensus": 0.6,
+   "actual": null
+  },
+  {
+   "title": "U.S. second quarter real GDP revised annualized quarterly rate",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 1.5,
+   "consensus": 1.5,
+   "actual": null
+  },
+  {
+   "title": "The United States excludes aircraft non-defense capital durable goods orders monthly rate in July",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 1.2,
+   "consensus": 0.9,
+   "actual": null
+  },
+  {
+   "title": "U.S. second-quarter GDP price index revision",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 6.2,
+   "consensus": 6.2,
+   "actual": null
+  },
+  {
+   "title": "U.S. second quarter core PCE price index annualized quarterly rate revision",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 3.4,
+   "consensus": 3.4,
+   "actual": null
+  },
+  {
+   "title": "Monthly rate of U.S. durable goods orders excluding defense in July",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 0.5,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. second quarter PCE price index annualized quarterly rate revision",
+   "timestamp": "2026-08-26T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 5.1,
+   "consensus": 5.1,
+   "actual": null
+  },
+  {
+   "title": "Four-week average of the number of initial jobless claims in the United States for the week to August 22 (ten thousand people)",
+   "timestamp": "2026-08-27T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 20.4,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August Chicago PMI",
+   "timestamp": "2026-08-28T13:45:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 57.6,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. University of Michigan Consumer Confidence Index final value in August",
+   "timestamp": "2026-08-28T14:00:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 51.0,
+   "consensus": 51.0,
+   "actual": null
+  },
+  {
+   "title": "Final U.S. one-year inflation rate forecast for August",
+   "timestamp": "2026-08-28T14:00:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 4.3,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "United States Red Book commercial retail sales annual rate for the week to August 29",
+   "timestamp": "2026-09-01T12:55:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 9.1,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August S & P's global manufacturing PMI final value",
+   "timestamp": "2026-09-01T13:45:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": null,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM Manufacturing PMI",
+   "timestamp": "2026-09-01T14:00:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 55.6,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM Manufacturing Price Payment Index",
+   "timestamp": "2026-09-01T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 71.1,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM New Orders Index",
+   "timestamp": "2026-09-01T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 56.7,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM Employment Index",
+   "timestamp": "2026-09-01T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 52.8,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM Output Index",
+   "timestamp": "2026-09-01T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 58.5,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "Final monthly rate of U.S. durable goods orders in July",
+   "timestamp": "2026-09-02T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": null,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "Monthly rate of U.S. durable goods orders excluding transportation in July",
+   "timestamp": "2026-09-02T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": null,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "The United States excludes aircraft non-defense capital durable goods orders monthly rate in July",
+   "timestamp": "2026-09-02T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": null,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "Four-week average of the number of initial jobless claims in the United States for the week to August 29 (ten thousand people)",
+   "timestamp": "2026-09-03T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": null,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August S & P Global Services PMI Final Value",
+   "timestamp": "2026-09-03T13:45:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": null,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August S & P global comprehensive PMI final value",
+   "timestamp": "2026-09-03T13:45:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": null,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM Non-Manufacturing PMI",
+   "timestamp": "2026-09-03T14:00:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 54.1,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM Non-Manufacturing New Orders Index",
+   "timestamp": "2026-09-03T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 57.2,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM Non-Manufacturing Price Index",
+   "timestamp": "2026-09-03T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 70.3,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM Non-Manufacturing Employment Index",
+   "timestamp": "2026-09-03T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 47.4,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August ISM Non-Manufacturing Supplier Delivery Index",
+   "timestamp": "2026-09-03T14:00:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 52.8,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. private non-farm employment in August (10,000)",
+   "timestamp": "2026-09-04T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 3.0,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. unemployment rate in August",
+   "timestamp": "2026-09-04T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 4.1,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. August U6 unemployment rate",
+   "timestamp": "2026-09-04T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 7.9,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "Four-week average of the number of initial jobless claims in the United States for the week ending September 5 (10,000 people)",
+   "timestamp": "2026-09-10T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": null,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August PPI monthly rate",
+   "timestamp": "2026-09-10T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 0.0,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US core PPI monthly rate in August",
+   "timestamp": "2026-09-10T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 0.2,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August PPI annual rate",
+   "timestamp": "2026-09-10T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 4.7,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US core PPI annual rate in August",
+   "timestamp": "2026-09-10T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 4.2,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. adjusted monthly CPI rate in August",
+   "timestamp": "2026-09-11T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 0.1,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. adjusted core CPI monthly rate in August",
+   "timestamp": "2026-09-11T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 0.2,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. CPI annual rate without seasonally adjusted in August",
+   "timestamp": "2026-09-11T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 3.4,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. core CPI annual rate without quarterly adjustment in August",
+   "timestamp": "2026-09-11T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 2.5,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US does not adjust CPI seasonally in August",
+   "timestamp": "2026-09-11T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": 333.918,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "Initial value of the University of Michigan Consumer Confidence Index in September",
+   "timestamp": "2026-09-11T14:00:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": 51.0,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "Initial U.S. expectations for 5-to 10-year inflation rate in September",
+   "timestamp": "2026-09-11T14:00:00+00:00",
+   "country": "United States",
+   "star": "LOW",
+   "previous": 3.3,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. retail sales monthly rate for August",
+   "timestamp": "2026-09-16T12:30:00+00:00",
+   "country": "United States",
+   "star": "HIGH",
+   "previous": -0.6,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "U.S. core retail sales monthly rate in August",
+   "timestamp": "2026-09-16T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": -0.3,
+   "consensus": null,
+   "actual": null
+  },
+  {
+   "title": "US August Retail Sales Control Group",
+   "timestamp": "2026-09-16T12:30:00+00:00",
+   "country": "United States",
+   "star": "MEDIUM",
+   "previous": -0.4,
+   "consensus": null,
+   "actual": null
+  }
+ ]
+}

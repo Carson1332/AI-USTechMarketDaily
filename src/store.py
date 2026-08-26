@@ -220,9 +220,30 @@ def build_markdown(
 
 
 def save(content: str, now_utc: datetime, archive_dir: Path, settings: dict, market_date: date) -> Path:
-    """Write the digest to archive/YYYY-MM-DD.md using the US market date."""
+    """Write the digest to archive/YYYY-MM-DD.md using the US market date.
+
+    A mock run resolves to the same market_date as that day's real cloud run, so without a
+    guard `python -m src.main --mock` silently replaces a genuine archived digest with
+    placeholder text — and since the file still exists, nothing looks wrong until the
+    diff is read. Refuse that overwrite; a real digest never loses to a mock one.
+    """
     archive_dir.mkdir(parents=True, exist_ok=True)
     path = archive_dir / f"{market_date.isoformat()}.md"
+
+    if _MOCK_MARKER in content and path.exists():
+        try:
+            existing = path.read_text(encoding="utf-8")
+        except OSError:
+            existing = ""
+        if existing and _MOCK_MARKER not in existing:
+            fallback = archive_dir / f"{market_date.isoformat()}.mock.md"
+            fallback.write_text(content, encoding="utf-8")
+            logger.warning(
+                "Refusing to overwrite the real digest at %s with mock output — "
+                "wrote %s instead", path, fallback,
+            )
+            return fallback
+
     path.write_text(content, encoding="utf-8")
     logger.info("Archive written: %s", path)
     return path

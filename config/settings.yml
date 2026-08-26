@@ -1,14 +1,37 @@
-lookback_hours: 30
+﻿lookback_hours: 30
 
 # event 取代了原本的 sentiment。sentiment 在 Alpha Vantage 移除後恆為 None，
 # 那 0.20 權重等於白給；而 coverage 在只有單一來源時也幾乎恆定，
 # 結果排序實際上退化成「誰最新誰贏」，通訊社的地緣政治單行標題因此屠榜。
 rank_weights:
-  event:     0.35   # 有沒有發生一件事
-  relevance: 0.25   # 這件事關不關你的持股/追蹤清單
-  coverage:  0.15
-  recency:   0.15
-  move:      0.10
+  event:     0.30   # 有沒有發生一件事
+  relevance: 0.20   # 這件事關不關你的持股/追蹤清單
+  source:    0.25   # 誰寫的 — 見下面 source_tiers
+  coverage:  0.10
+  recency:   0.10
+  move:      0.05
+  source_default: 0.3   # 沒列在 source_tiers 的來源
+
+# 來源權重。沒有這一層,Yahoo 逐檔 feed 會贏走全部版面:
+# 它一天吐 400+ 條、每條都提到追蹤標的所以相關性滿分,而真正有密度的來源
+# (SEC 申報、SemiAnalysis 拆解)常常整篇不寫代號,相關性是 0。
+# 名稱比對取斜線前的字首,所以 "Yahoo/NVDA"、"SEC EDGAR/MRVL" 都對得上。
+source_tiers:
+  "SEC EDGAR":     1.00   # 一手法定文件
+  "SemiAnalysis":  0.85
+  "Stratechery":   0.75
+  "The Block":     0.65
+  "CoinDesk":      0.65
+  "DC Dynamics":   0.65
+  "ServeTheHome":  0.60
+  "CNBC":          0.55
+  "The Register":  0.50
+  "The Defiant":   0.50
+  "Tom's Hardware": 0.30   # 大量消費級/復古硬體,對本報訊噪比偏低
+  "CoinTelegraph": 0.40
+  "SA Market":     0.30
+  "Marketaux":     0.20
+  "Yahoo":         0.15   # 量大品質雜,只當相關性補充
 
 selection:
   max_items_total: 14
@@ -23,6 +46,7 @@ selection:
   # 逐檔新聞全是美股，會把加密整個擠掉。加密是報告裡獨立的一節，不該跟主題搶名額。
   min_items_per_market:
     crypto: 5
+  max_items_per_source: 4   # 單一來源家族上限,防止 Yahoo 逐檔 feed 洗版
 
 # 事件偵測 — 判斷標題在講「發生了一件事」還是「盤面在動」。
 event_scoring:
@@ -63,6 +87,8 @@ event_scoring:
     - upside in, analysts see, price target of, billionaire, billionaires
     - dumped, loaded up, piling into, quietly, this stock, motley fool
     - read this before, what you need to know, better buy, vs., versus
+    - and more stock, etfs in focus, what's the deal with, stocks that defined
+    - moving in, movers, on watch, stock split, zacks, motley
 
 sources:
   whitelist: []
@@ -79,6 +105,23 @@ rss_feeds:
   - {name: "The Defiant",   market: crypto, url: "https://thedefiant.io/api/feed"}
   - {name: "CoinTelegraph", market: crypto, url: "https://cointelegraph.com/rss"}
   - {name: "The Block",     market: crypto, url: "https://www.theblock.co/rss.xml"}
+  # 專業源 — 半導體/資料中心/算力硬體。這一層寫的是 CNBC 不會寫的深度。
+  - {name: "SemiAnalysis",  market: equity, url: "https://semianalysis.substack.com/feed"}
+  - {name: "Tom's Hardware",market: equity, url: "https://www.tomshardware.com/feeds/all"}
+  - {name: "The Register",  market: equity, url: "https://www.theregister.com/headlines.atom"}
+  - {name: "DC Dynamics",   market: equity, url: "https://www.datacenterdynamics.com/en/rss/"}
+  - {name: "ServeTheHome",  market: equity, url: "https://www.servethehome.com/feed/"}
+  - {name: "Stratechery",   market: equity, url: "https://stratechery.com/feed/"}
+  - {name: "SA Market",     market: equity, url: "https://seekingalpha.com/market_currents.xml"}
+  # The Information 的 RSS 回 403(付費牆擋),沒有可用的免費管道。
+
+# SEC EDGAR — 一手事件源。8-K 是美國發行人法定「發生重大事件時」要當天申報的文件,
+# item code 直接說明事件性質(1.01 重大協議 / 2.02 財報 / 5.02 高層異動 / 4.02 財報重編)。
+# 外國發行人(NBIS/ASML/TSM)申報 6-K,沒有 item code。免 key,SEC 要求 UA 帶聯絡方式。
+sec_filings:
+  enabled: true
+  max_tickers: 24
+  request_delay: 0.15    # SEC 上限 10 req/s,這樣遠低於門檻
 
 # 加密現貨價格 — CoinGecko 免費端點，不需要 key。
 # 注意:24h 漲跌是滾動視窗,跟股票的「當日收盤對前收」不是同一種數字,報告裡不可混講。

@@ -56,9 +56,12 @@ def build_relevance_index(settings: dict) -> dict[str, re.Pattern]:
 
     index: dict[str, re.Pattern] = {}
     for ticker in watched:
-        # Symbols need word boundaries (BE, UX, RAM are real words); names don't.
+        # Word boundaries on symbols AND aliases. Short aliases are the dangerous ones:
+        # without \b, AMZN's "AWS" matches inside "dr-aws-in", so "New Delhi draws in $73
+        # billion" scored as an Amazon story. \b works for multi-word aliases too
+        # ("Bloom Energy", "Advanced Micro").
         parts = [rf"\b{re.escape(ticker)}\b"]
-        parts += [re.escape(a) for a in aliases.get(ticker, [])]
+        parts += [rf"\b{re.escape(a)}\b" for a in aliases.get(ticker, [])]
         index[ticker] = re.compile("|".join(parts), re.IGNORECASE)
     return index
 
@@ -98,13 +101,22 @@ def relevance_score(item: NewsItem, index: dict[str, re.Pattern]) -> float:
     if not index:
         return 0.0
 
-    title_hits = [t for t, pat in index.items() if pat.search(item.title)]
+    # Where the name appears matters. English headlines lead with the subject, so a ticker
+    # in the opening is what the piece is about, while one near the end is usually an
+    # aside — "Commodore 77 special edition uses more powerful AMD Artix XC7A100T" is a
+    # retro-computer story, not an AMD story, and should not outrank real AMD news.
+    matches = [(t, pat.search(item.title)) for t, pat in index.items()]
+    matches = [(t, m) for t, m in matches if m]
 
-    if title_hits:
-        if not item.anchor_ticker:
-            item.anchor_ticker = title_hits[0]
+    if matches:
+        matches.sort(key=lambda x: x[1].start())
+        subject, first = matches[0]
+        title_hits = [t for t, _ in matches]
+        if not item.anchor_ticker or item.anchor_ticker not in title_hits:
+            item.anchor_ticker = subject
         item.tickers = item.tickers or title_hits
-        return 1.0
+        position = first.start() / max(len(item.title), 1)
+        return 1.0 if position <= 0.4 else 0.6
 
     body_hits = [t for t, pat in index.items() if pat.search(item.summary[:400])]
     if body_hits:
@@ -112,6 +124,28 @@ def relevance_score(item: NewsItem, index: dict[str, re.Pattern]) -> float:
         return 0.6
 
     return 0.0
+
+
+def source_score(item: NewsItem, tiers: dict, default: float = 0.3) -> float:
+    """0..1 trust weight for where the story came from.
+
+    Without this, the per-ticker Yahoo feeds win everything: they emit hundreds of items a
+    day and every one mentions a watched ticker, so they max out relevance. Meanwhile the
+    sources with the most signal per article — an SEC filing, a SemiAnalysis teardown —
+    often don't name a ticker at all and score zero on relevance.
+
+    Source names carry a suffix for per-ticker feeds ("Yahoo/NVDA", "SEC EDGAR/MRVL"), so
+    match on the prefix before the slash.
+    """
+    if not tiers:
+        return default
+    family = item.source.split("/")[0].strip()
+    if family in tiers:
+        return float(tiers[family])
+    for name, weight in tiers.items():
+        if family.startswith(name):
+            return float(weight)
+    return default
 
 
 def event_score(item: NewsItem, cfg: dict) -> float:
@@ -161,6 +195,7 @@ def score_items(
     now: datetime,
     event_cfg: dict | None = None,
     relevance_index: dict | None = None,
+    source_tiers: dict | None = None,
 ) -> list[NewsItem]:
     """Compute rank_score for each item. Mutates items in-place, returns them."""
     if not items:
@@ -168,6 +203,7 @@ def score_items(
 
     event_cfg = event_cfg or {}
     relevance_index = relevance_index or {}
+    source_tiers = source_tiers or {}
     source_counts = [float(i.source_count) for i in items]
     pct_changes = [
         abs(i.price_metric["pct_change"]) if i.price_metric else 0.0
@@ -177,18 +213,22 @@ def score_items(
     norm_counts = _minmax_normalize(source_counts)
     norm_moves = _minmax_normalize(pct_changes)
 
-    w_evt = weights.get("event", 0.35)
-    w_rel = weights.get("relevance", 0.25)
-    w_cov = weights.get("coverage", 0.15)
-    w_rec = weights.get("recency", 0.15)
-    w_move = weights.get("move", 0.10)
+    w_evt = weights.get("event", 0.30)
+    w_rel = weights.get("relevance", 0.20)
+    w_src = weights.get("source", 0.25)
+    w_cov = weights.get("coverage", 0.10)
+    w_rec = weights.get("recency", 0.10)
+    w_move = weights.get("move", 0.05)
+    default_tier = weights.get("source_default", 0.3)
 
     for i, item in enumerate(items):
         item.event_score = event_score(item, event_cfg)
         item.relevance_score = relevance_score(item, relevance_index)
+        item.source_score = source_score(item, source_tiers, default_tier)
         item.rank_score = (
             w_evt * item.event_score
             + w_rel * item.relevance_score
+            + w_src * item.source_score
             + w_cov * norm_counts[i]
             + w_rec * recency_decay(item.published_at, now)
             + w_move * norm_moves[i]
@@ -212,6 +252,7 @@ def select_top(
     max_per_theme: int = 0,
     min_event: float = 0.0,
     min_per_market: dict | None = None,
+    max_per_source: int = 0,
 ) -> list[NewsItem]:
     """
     Select top items enforcing per-theme minimums and (optionally) a per-theme cap.
@@ -268,8 +309,10 @@ def select_top(
     # theme. Without this, macro_other (the catch-all bucket every unmatched wire story
     # lands in) takes most of the digest and squeezes out the themes actually being tracked.
     counts: dict[str, int] = defaultdict(int)
+    src_counts: dict[str, int] = defaultdict(int)
     for item in selected:
         counts[item.theme] += 1
+        src_counts[item.source.split("/")[0]] += 1
 
     for item in items:
         if len(selected) >= max_total:
@@ -278,9 +321,15 @@ def select_top(
             continue
         if max_per_theme and counts[item.theme] >= max_per_theme:
             continue
+        # Per-ticker feeds share one family name, so this caps "Yahoo" as a whole rather
+        # than letting 24 separate Yahoo/<TICKER> sources each claim a slot.
+        family = item.source.split("/")[0]
+        if max_per_source and src_counts[family] >= max_per_source:
+            continue
         selected.append(item)
         used_ids.add(id(item))
         counts[item.theme] += 1
+        src_counts[family] += 1
 
     # Third pass: if the cap left the digest short (few themes had enough items), relax it
     # rather than removing it. Dropping the cap entirely just re-floods with the catch-all

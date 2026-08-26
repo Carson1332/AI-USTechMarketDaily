@@ -20,6 +20,7 @@ class NewsItem:
     rank_score: float = 0.0
     event_score: float = 0.0        # 0..1 — reports an event vs describes the tape
     relevance_score: float = 0.0    # 0..1 — mentions a watched ticker/alias
+    source_score: float = 0.0       # 0..1 — trust weight of the publication
     market: str = "equity"          # "equity" | "crypto" | "macro"
     theme: str = "macro_other"
     anchor_ticker: str | None = None

@@ -15,8 +15,8 @@ import httpx
 
 from src import (
     config, dedupe, fetch_crypto, fetch_earnings, fetch_econ, fetch_finnhub,
-    fetch_indicators, fetch_marketaux, fetch_rss, fetch_yahoo, market_calendar,
-    normalize, notify, rank, render, store, summarize, tag,
+    fetch_indicators, fetch_marketaux, fetch_rss, fetch_sec, fetch_yahoo,
+    market_calendar, normalize, notify, rank, render, store, summarize, tag,
 )
 
 logging.basicConfig(
@@ -180,6 +180,16 @@ def main() -> None:
                     max_tickers=settings["ticker_news"].get("max_tickers", 24),
                 )
 
+            # Primary-source layer — the issuer's own filing, not a report about it
+            sec_cfg = settings.get("sec_filings", {})
+            if sec_cfg.get("enabled", True):
+                rss_raw += fetch_sec.fetch_filings(
+                    snapshot_tickers, client,
+                    lookback_hours=settings.get("lookback_hours", 30),
+                    max_tickers=sec_cfg.get("max_tickers", 24),
+                    request_delay=sec_cfg.get("request_delay", 0.15),
+                )
+
             # Marketaux — only for movers nothing else covered. See fetch_marketaux docstring
             # for why it isn't used as a general source.
             mx_cfg = settings.get("marketaux", {})
@@ -261,6 +271,7 @@ def main() -> None:
         items, settings["rank_weights"], now_utc,
         settings.get("event_scoring", {}),
         relevance_index,
+        settings.get("source_tiers", {}),
     )
     items = rank.select_top(
         items,
@@ -269,6 +280,7 @@ def main() -> None:
         max_per_theme=settings["selection"].get("max_items_per_theme", 0),
         min_event=settings["selection"].get("min_event_score", 0.0),
         min_per_market=settings["selection"].get("min_items_per_market", {}),
+        max_per_source=settings["selection"].get("max_items_per_source", 0),
     )
 
     # ── 8b. BUILD MARKET DATA ─────────────────────────────────────────────────

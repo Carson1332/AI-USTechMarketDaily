@@ -8,6 +8,7 @@ from datetime import date, datetime
 
 import httpx
 
+from src import render
 from src.models import NewsItem
 
 logger = logging.getLogger(__name__)
@@ -179,6 +180,67 @@ def send_message(
     logger.debug("Telegram: sent message (%d chars)", len(text))
 
 
+def format_dashboard(
+    items: list[NewsItem],
+    settings: dict,
+    market_date: date,
+    scoreboard: list[dict] | None = None,
+    snapshot_rows: list[dict] | None = None,
+    rotation: list[dict] | None = None,
+    crypto_prices: list[dict] | None = None,
+    earnings: list[dict] | None = None,
+    econ_events: list[dict] | None = None,
+    econ_status: dict | None = None,
+) -> str:
+    """Opening message: title, counts, and the number tables in monospace blocks."""
+    tg_cfg = settings.get("telegram", {})
+    header_prefix = tg_cfg.get("header_prefix", "📈 Daily Market Digest")
+
+    active_regions = sorted({item.region for item in items})
+    region_flags = " ".join(_REGION_EMOJI.get(r, "🌍") for r in active_regions)
+
+    parts = [
+        f"<b>{_escape(header_prefix)} | {_escape(render.date_header_cn(market_date))}</b>",
+        f"📅 {market_date.strftime('%d %b %Y')} · {len(items)} stories · {region_flags}",
+    ]
+
+    rotation_block = render.rotation_plain(rotation or [])
+    if rotation_block:
+        parts += ["", "<b>🔄 板塊輪動</b>", f"<pre>{_escape(rotation_block)}</pre>"]
+
+    snapshot_block = render.snapshot_plain(snapshot_rows or [])
+    if snapshot_block:
+        parts += ["", "<b>📊 個股快照</b>", f"<pre>{_escape(snapshot_block)}</pre>"]
+
+    crypto_block = render.crypto_plain(crypto_prices or [])
+    if crypto_block:
+        parts += ["", "<b>₿ 加密現貨 (24h)</b>", f"<pre>{_escape(crypto_block)}</pre>"]
+
+    board_block = render.scoreboard_plain(scoreboard or [])
+    if board_block:
+        parts += ["", "<b>🏁 板塊計分板</b>", f"<pre>{_escape(board_block)}</pre>"]
+
+    earnings_block = render.earnings_plain(earnings or [])
+    if earnings_block:
+        parts += ["", "<b>📅 本週財報</b>", f"<pre>{_escape(earnings_block)}</pre>"]
+
+    econ_block = render.econ_plain(econ_events or [], limit=6)
+    if econ_block:
+        parts += ["", "<b>🏛 本週總經數據</b>", f"<pre>{_escape(econ_block)}</pre>"]
+
+    # The macro calendar is refreshed by hand on a weekly cadence. Forgetting degrades the
+    # digest quietly, so the reminder goes where it will actually be seen each morning.
+    note = (econ_status or {}).get("note")
+    if note:
+        parts += [
+            "",
+            f"⚠️ <i>{_escape(note)}</i>",
+            "<i>本機執行: tools\\refresh_econ_calendar.ps1</i>",
+        ]
+
+    return "\n".join(parts)
+
+
 def send_digest(
     token: str,
     chat_id: str,
@@ -188,39 +250,30 @@ def send_digest(
     now_utc: datetime,
     market_date: date,
     scoreboard: list[dict] | None = None,
+    snapshot_rows: list[dict] | None = None,
+    rotation: list[dict] | None = None,
+    crypto_prices: list[dict] | None = None,
+    earnings: list[dict] | None = None,
+    econ_events: list[dict] | None = None,
+    econ_status: dict | None = None,
 ) -> None:
-    """Send the daily digest: header → narrative → bullet brief."""
+    """Send the daily digest: dashboard → narrative → bullet brief."""
     tg_cfg = settings.get("telegram", {})
-    header_prefix = tg_cfg.get("header_prefix", "📈 Daily Market Digest")
     disable_preview = tg_cfg.get("disable_web_page_preview", True)
 
     if not items:
         send_message(token, chat_id, "📰 No significant news today.", disable_preview)
         return
 
-    date_str = market_date.strftime("%d %b %Y")
-    total = len(items)
+    # 1. Dashboard — title + the numbers the narrative refers back to
+    dashboard = format_dashboard(
+        items, settings, market_date, scoreboard, snapshot_rows, rotation,
+        crypto_prices, earnings, econ_events, econ_status,
+    )
+    for chunk in split_message(dashboard):
+        send_message(token, chat_id, chunk, disable_preview)
 
-    # 1. Header — date + count + regions + compact scoreboard
-    active_regions = sorted({item.region for item in items})
-    region_flags = " ".join(_REGION_EMOJI.get(r, "🌍") for r in active_regions)
-    header_parts = [
-        f"<b>{_escape(header_prefix)}</b>",
-        f"📅 {date_str} · {total} stories · {region_flags}",
-    ]
-    if scoreboard:
-        # Best 3 + worst 1 as a quick snapshot
-        top = scoreboard[:3]
-        worst = [scoreboard[-1]] if len(scoreboard) > 3 else []
-        entries = top + (["…"] if worst else []) + worst
-        board_line = " · ".join(
-            f"{e['label']} {e['pct_change']:+.1f}%" if isinstance(e, dict) else e
-            for e in entries
-        )
-        header_parts.append(f"<b>板塊:</b> <i>{_escape(board_line)}</i>")
-    send_message(token, chat_id, "\n".join(header_parts), disable_preview)
-
-    # 2. Narrative — Chinese 7-section prose from DeepSeek
+    # 2. Narrative — the 10-section Chinese prose from the LLM
     if narrative and narrative.strip():
         for chunk in split_message(_escape(_strip_markdown(narrative))):
             send_message(token, chat_id, chunk, disable_preview)

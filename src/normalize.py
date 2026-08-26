@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import html
 import logging
+import re
 from datetime import datetime, timezone
 
 from src.models import NewsItem
+
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +97,44 @@ def normalize_finnhub_batch(raw_list: list[dict]) -> list[NewsItem]:
         item = normalize_finnhub(raw)
         if item:
             items.append(item)
+    return items
+
+
+def normalize_rss(raw: dict) -> NewsItem | None:
+    """Convert one fetch_rss item to a NewsItem. RSS descriptions carry markup — strip it
+    so event scoring matches on words rather than on tag soup."""
+    title = (raw.get("title") or "").strip()
+    url = (raw.get("url") or "").strip()
+    published_at = raw.get("published_at")
+    if not title or not url or published_at is None:
+        return None
+
+    summary = html.unescape(_HTML_TAG_RE.sub(" ", raw.get("summary", "")))
+    summary = " ".join(summary.split())
+
+    return NewsItem(
+        title=html.unescape(title),
+        source=raw.get("source", "RSS"),
+        url=url,
+        published_at=published_at,
+        summary=summary,
+        sentiment=None,
+        region="Global",
+        price_metric=None,
+        market=raw.get("market", "equity"),
+        anchor_ticker=raw.get("anchor_ticker"),
+        # Per-ticker feeds already tell us the subject; don't make relevance re-derive it.
+        tickers=[raw["anchor_ticker"]] if raw.get("anchor_ticker") else [],
+    )
+
+
+def normalize_rss_batch(raw_list: list[dict]) -> list[NewsItem]:
+    items = []
+    for raw in raw_list:
+        item = normalize_rss(raw)
+        if item:
+            items.append(item)
+    logger.info("Normalized %d/%d RSS items", len(items), len(raw_list))
     return items
 
 

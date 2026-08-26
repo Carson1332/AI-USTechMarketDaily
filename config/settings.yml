@@ -1,29 +1,173 @@
 lookback_hours: 30
 
+# event 取代了原本的 sentiment。sentiment 在 Alpha Vantage 移除後恆為 None，
+# 那 0.20 權重等於白給；而 coverage 在只有單一來源時也幾乎恆定，
+# 結果排序實際上退化成「誰最新誰贏」，通訊社的地緣政治單行標題因此屠榜。
 rank_weights:
-  coverage:  0.35
-  recency:   0.25
-  sentiment: 0.20
-  move:      0.20
+  event:     0.35   # 有沒有發生一件事
+  relevance: 0.25   # 這件事關不關你的持股/追蹤清單
+  coverage:  0.15
+  recency:   0.15
+  move:      0.10
 
 selection:
-  max_items_total: 12
+  max_items_total: 14
   dedupe_title_threshold: 85
-  min_items_per_theme: 1
+  # 0 = 不再為了「每個主題至少一條」而硬塞。市場配額(下面 min_items_per_market)已經
+  # 保證了加密的版面,主題不需要再被人工攤平 —— 那只會讓不相關的稿子擠進來。
+  min_items_per_theme: 0
+  max_items_per_theme: 4      # 防止 macro_other 這個 catch-all 吃掉整份摘要
+  # 事件分數門檻。寧可出 10 條真的有事發生的，也不要湊滿 14 條裡混 4 條選股專欄。
+  # 若當天沒有任何一條過關，這個門檻會自動忽略(不會出空的日報)。
+  min_event_score: 0.6
+  # 逐檔新聞全是美股，會把加密整個擠掉。加密是報告裡獨立的一節，不該跟主題搶名額。
+  min_items_per_market:
+    crypto: 5
+
+# 事件偵測 — 判斷標題在講「發生了一件事」還是「盤面在動」。
+event_scoring:
+  enabled: true
+  filler_penalty: 0.5
+  signals:
+    # 公司行為
+    - earnings, results, guidance, outlook, forecast, beats, misses
+    - acquire, acquisition, merger, buyout, takeover, stake, warrant
+    - partnership, deal, contract, agreement, order worth, supply
+    - launch, unveil, announce, debut, rollout, ships
+    - layoff, job cuts, restructuring, spin-off, IPO, buyback, dividend
+    # 人事
+    - resign, steps down, departs, ousted, appoints, names, succeeds, hires
+    # 監管/法律
+    - lawsuit, sues, settlement, probe, investigation, subpoena, fine, penalty
+    - SEC, DOJ, FTC, antitrust, approval, approves, rejects, ban, sanctions, tariff
+    - bill, act, vote, ruling, court
+    # 賣方/資金
+    - upgrade, downgrade, price target, initiates coverage, raises, cuts rating
+    - inflow, outflow, raises funding, valuation
+    # 加密特有
+    - stablecoin, tokenized, custody, staking, validator, mainnet, halving, unlock
+    - ETF approval, spot ETF, reserve, treasury
+  filler:
+    # 沒有主詞的盤面描述 — 這些不是事件
+    - shares drift, stocks drift, steady as, little changed, mixed
+    - ahead of, what to watch, here's what, live updates, wrap
+    - opening bell, closing bell, markets today, market wrap, midday
+    - things to know, top stories, briefing, roundup
+    # 評論/選股專欄 — 有事件關鍵字但沒有事件
+    - Cramer, here's who, here's why, here's how, how to play, what to know
+    - analyst says, strategist says, specialist says, expert says
+    - top picks, best stocks, stocks to, gems, watch list, screen for
+    - isn't buying, five things, 5 things, three things, could benefit
+    # SEO 標題農場 — 這些會塞滿事件關鍵字但沒有事件
+    - why is it, getting attention today, should you buy, is it time to
+    - upside in, analysts see, price target of, billionaire, billionaires
+    - dumped, loaded up, piling into, quietly, this stock, motley fool
+    - read this before, what you need to know, better buy, vs., versus
 
 sources:
   whitelist: []
   blacklist: []
 
+# RSS — 深度層。Finnhub 的 general news 幾乎全是通訊社單行快訊，
+# 產不出「Circle Arc 十一個驗證節點包含 BlackRock/Visa/DTCC」這種密度的內容。
+# market 欄位決定這條新聞屬於哪個市場，報告會照市場分節。
+rss_feeds:
+  - {name: "CNBC",          market: equity, url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"}
+  - {name: "CNBC Tech",     market: equity, url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=19854910"}
+  - {name: "CNBC Earnings", market: equity, url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=15839135"}
+  - {name: "CoinDesk",      market: crypto, url: "https://www.coindesk.com/arc/outboundfeeds/rss/"}
+  - {name: "The Defiant",   market: crypto, url: "https://thedefiant.io/api/feed"}
+  - {name: "CoinTelegraph", market: crypto, url: "https://cointelegraph.com/rss"}
+  - {name: "The Block",     market: crypto, url: "https://www.theblock.co/rss.xml"}
+
+# 加密現貨價格 — CoinGecko 免費端點，不需要 key。
+# 注意:24h 漲跌是滾動視窗,跟股票的「當日收盤對前收」不是同一種數字,報告裡不可混講。
+crypto_assets:
+  - {id: bitcoin,     symbol: BTC,  label: "比特幣"}
+  - {id: ethereum,    symbol: ETH,  label: "以太坊"}
+  - {id: solana,      symbol: SOL,  label: "Solana"}
+  - {id: hyperliquid, symbol: HYPE, label: "Hyperliquid"}
+
 model:
   openrouter_model: "deepseek/deepseek-chat:online"
 
 telegram:
-  header_prefix: "📈 Daily Market Digest"
+  header_prefix: "📊 市場日報"
   disable_web_page_preview: true
   min_items_for_prose: 2
 
 timezone: "Australia/Perth"
+
+# 相關性比對用的英文別名。代號本身會自動比對(加上詞界,所以 BE / UX 不會誤中普通英文字),
+# 這裡補的是「新聞標題只寫公司名不寫代號」的情況。
+ticker_aliases:
+  NVDA:  ["Nvidia"]
+  AMD:   ["Advanced Micro"]
+  AVGO:  ["Broadcom"]
+  MRVL:  ["Marvell"]
+  MU:    ["Micron"]
+  TSM:   ["TSMC", "Taiwan Semiconductor"]
+  VRT:   ["Vertiv"]
+  ANET:  ["Arista"]
+  CRDO:  ["Credo"]
+  NBIS:  ["Nebius"]
+  BE:    ["Bloom Energy"]
+  VST:   ["Vistra"]
+  OKLO:  ["Oklo"]
+  GEV:   ["GE Vernova"]
+  GOOGL: ["Google", "Alphabet", "DeepMind"]
+  MSFT:  ["Microsoft", "Azure"]
+  AMZN:  ["Amazon", "AWS"]
+  META:  ["Meta Platforms"]
+  AAPL:  ["Apple"]
+  TSLA:  ["Tesla"]
+  PLTR:  ["Palantir"]
+  COIN:  ["Coinbase"]
+  CRCL:  ["Circle Internet", "USDC"]
+  GLXY:  ["Galaxy Digital"]
+  HOOD:  ["Robinhood"]
+  MSTR:  ["MicroStrategy", "Strategy Inc"]
+
+# 逐檔新聞 — Yahoo 的 per-ticker RSS,免 key、無配額,涵蓋範圍就是你的追蹤清單。
+# 來源偏 SEO/評論網站,但事件分數會把那些擋掉,真正的公司行為(增資、可轉債、合約)會留下。
+ticker_news:
+  enabled: true
+  max_tickers: 24        # 一檔一個請求,控制在合理範圍
+
+# Marketaux — 只用來回答「這檔今天大漲/大跌,但今天的新聞源都沒提到它,為什麼?」
+# 不當一般新聞源:免費方案每次請求只回 3 篇,而且來源品質低於現有的 RSS(見 fetch_marketaux.py)。
+marketaux:
+  enabled: true
+  move_threshold: 4.0    # 快照裡漲跌超過這個%數才值得花一次請求去問
+  max_requests: 8        # 每天配額 100,留餘裕
+  min_match_score: 40.0  # entities[].match_score 低於此視為雜訊(代號只是順帶被提到)
+
+# 總經行事曆 — Finnhub 的 /calendar/economic 是付費的(403),所以改走本機 Futu OpenD。
+# OpenD 在你自己的機器上,GitHub Actions 連不到,因此拆成兩半:
+#   本機  python tools/publish_econ_calendar.py --commit  → data/econ_calendar.json
+#   CI    src/fetch_econ.py 讀那個檔
+# 檔案過期或不存在都只是「這次沒有行事曆」,不會讓日報失敗。
+# 排程頻率的取捨(實測 2026-08-26):Futu 的日期可以拉到 90 天,
+# 但「市場預估 consensus」只有當週才有 —— 第 1 週之後全部是空的。
+#   每週跑   → 事件 + 預估都齊,第九節可以給可對答案的驗證點
+#   每兩週跑 → 約一半天數只有事件名稱、沒有預估
+#   每月跑   → 約 3/4 天數沒有預估
+# 舊檔不會給錯的數字,只會是空值,所以拉長排程是「功能變弱」不是「資料變錯」。
+# 視窗要 >= 排程間隔 + days_ahead,漏跑一次才不會開天窗:
+#   每週  --days 21,  max_age_days 21
+#   每兩週 --days 35, max_age_days 35
+#   每月  --days 67,  max_age_days 62
+econ_calendar:
+  path: "data/econ_calendar.json"
+  days_ahead: 7          # 報告只看未來一週
+  max_age_days: 21       # 超過就完全不採用;配合每週排程,改頻率請一起放大
+  stale_after_days: 8    # 超過就在 Telegram 上提醒該手動跑了(每週排程 + 1 天寬限)
+
+quotes:
+  # Finnhub 是主來源。yahoo_fallback 只補 Finnhub 沒回的代號，不會覆蓋既有報價。
+  # yfinance 走非官方 Yahoo 端點，Yahoo 改 auth 就會壞，CI 機房 IP 也可能被 429 ——
+  # 所以它只是補位，壞掉就少幾檔，不會讓整份日報失敗。設 false 可完全關閉。
+  yahoo_fallback: true
 
 themes:
   ai_compute:
@@ -66,12 +210,19 @@ themes:
     leaders: [PG, KO, JNJ, NEE, DUK, XLU, XLP, XLV]
     keywords: [dividend, utility, consumer staples, healthcare, safe haven, risk-off, defensive rotation]
 
+  crypto:
+    label: "加密貨幣 & 數位資產"
+    leaders: [COIN, CRCL, GLXY, HOOD, MSTR, RIOT, MARA, BMNR]
+    keywords: [bitcoin, ethereum, crypto, stablecoin, USDC, USDT, blockchain, tokenized,
+               DeFi, spot ETF, custody, staking, validator, mainnet, CLARITY Act,
+               digital asset, onchain, on-chain, treasury company]
+
   macro_other:
     label: "Macro & Other"
     leaders: []
     keywords: [Fed, FOMC, rate cut, inflation, CPI, payrolls, jobs, tariff, treasury, yields, PBOC, stimulus, yuan, GDP, recession, oil]
 
-theme_order: [ai_compute, ai_infra, ai_power, cloud_apps, robotics, quantum, defense, defensive, macro_other]
+theme_order: [ai_compute, ai_infra, ai_power, cloud_apps, robotics, quantum, crypto, defense, defensive, macro_other]
 
 primary_theme_overrides:
   BABA: cloud_apps
@@ -88,25 +239,98 @@ etf_symbols: [XLU, XLP, XLV, XLK, ITA, EWH, MCHI, FXI, GLD, TLT]
 # VIX: use symbol "VIX"; if Finnhub returns c=0 on live run, swap to "VIXY"
 gauges_tickers: [SPY, QQQ, IWM, TLT, GLD, UUP, HYG, VIX]
 
-# One ETF per sector for the scoreboard (sorted best-to-worst at runtime)
+# One ETF per sector for the scoreboard (sorted best-to-worst at runtime).
+# bucket = 輪動大類。程式會算每個 bucket 的當日平均漲跌，用來偵測資金在大類之間的移動。
+# 沒有非 AI 的 bucket，計分板就只會顯示「全部綠」，看不出錢跑去哪了。
 scoreboard_etfs:
-  - {label: "半導體/AI晶片", etf: SMH}
-  - {label: "AI 應用",       etf: AIQ}
-  - {label: "雲計算",        etf: SKYY}
-  - {label: "機器人",        etf: BOTZ}
-  - {label: "量子",          etf: QTUM}
-  - {label: "網絡安全",      etf: CIBR}
-  - {label: "核電",          etf: NLR}
-  - {label: "光伏",          etf: TAN}
-  - {label: "儲能/鋰電",     etf: LIT}
-  - {label: "天然氣",        etf: FCG}
-  - {label: "太空",          etf: ARKX}
-  - {label: "軍工/國防",     etf: ITA}
-  - {label: "白銀",          etf: SLV}
-  - {label: "醫療",          etf: XLV}
-  - {label: "必需消費",      etf: XLP}
-  - {label: "工業",          etf: XLI}
-  - {label: "AI記憶體/DRAM", etf: DRAM}
-  - {label: "數據中心",      etf: DTCR}
+  # ── AI 鏈 ────────────────────────────────────────────────────────────
+  - {label: "半導體/AI晶片", etf: SMH,  bucket: "AI鏈"}
+  - {label: "AI 應用",       etf: AIQ,  bucket: "AI鏈"}
+  - {label: "雲計算",        etf: SKYY, bucket: "AI鏈"}
+  - {label: "機器人",        etf: BOTZ, bucket: "AI鏈"}
+  - {label: "量子",          etf: QTUM, bucket: "AI鏈"}
+  - {label: "網絡安全",      etf: CIBR, bucket: "AI鏈"}
+  - {label: "AI記憶體/DRAM", etf: DRAM, bucket: "AI鏈"}
+  - {label: "數據中心",      etf: DTCR, bucket: "AI鏈"}
+  - {label: "光通訊/光電",   etf: LYTE, bucket: "AI鏈"}   # Roundhill Photonics & Optics, 上市 2026-08-06
+  - {label: "算力租賃",      etf: NCLD, bucket: "AI鏈"}   # Roundhill Neocloud, 上市 2026-08-06
+
+  # ── 能源/電力（AI 的上游，但受油氣與利率影響，會跟 AI 鏈脫鉤）────────
+  - {label: "核電",          etf: NLR,  bucket: "能源/電力"}
+  - {label: "光伏",          etf: TAN,  bucket: "能源/電力"}
+  - {label: "儲能/鋰電",     etf: LIT,  bucket: "能源/電力"}
+  - {label: "天然氣",        etf: FCG,  bucket: "能源/電力"}
+  - {label: "傳統能源",      etf: XLE,  bucket: "能源/電力"}
+
+  # ── 傳統景氣（rotation 的主要去處）──────────────────────────────────
+  - {label: "區域銀行",      etf: KRE,  bucket: "傳統景氣"}
+  - {label: "金融",          etf: XLF,  bucket: "傳統景氣"}
+  - {label: "工業",          etf: XLI,  bucket: "傳統景氣"}
+
+  # ── 商品/抗通膨（美元走弱、殖利率走高時的去處）──────────────────────
+  - {label: "大宗商品",      etf: DBC,  bucket: "商品/抗通膨"}
+  - {label: "黃金礦",        etf: GDX,  bucket: "商品/抗通膨"}
+  - {label: "銅",            etf: COPX, bucket: "商品/抗通膨"}
+  - {label: "白銀",          etf: SLV,  bucket: "商品/抗通膨"}
+
+  # ── 防禦 ────────────────────────────────────────────────────────────
+  - {label: "醫療",          etf: XLV,  bucket: "防禦"}
+  - {label: "必需消費",      etf: XLP,  bucket: "防禦"}
+
+  # ── 其他主題 ────────────────────────────────────────────────────────
+  - {label: "太空",          etf: ARKX, bucket: "其他主題"}
+  - {label: "軍工/國防",     etf: ITA,  bucket: "其他主題"}
+
+  # 尚未上市 — 註冊生效日 2026-08-31,上市後把下面這行的註解拿掉。
+  # Roundhill 的 PCB/被動元件 ETF,申報時叫 CIRQ,後來改名 CCML,上市前先確認實際代號。
+  # - {label: "PCB/被動元件", etf: CCML, bucket: "AI鏈"}
 
 anchor_tickers: [NVDA, AMD, TSLA, MSFT, GOOGL, AMZN, META, AAPL, AVGO, MU, ANET, PLTR, LMT, RTX, VIXY]
+
+# 個股快照表 — 每天固定出現在報告第三節，順序即顯示順序，group 相同的會排在一起。
+# 價格與漲跌由程式從 Finnhub quote 直接填入，LLM 只負責寫「要點」，避免杜撰數字。
+#
+# 分組邏輯：
+#   算力核心   = 大型高beta，一天 ±3% 是常態，漲跌本身就有訊息量
+#   二階供應鏈 = 算力的「水電工」，龍頭的資本支出會先反映在這裡
+#   雲端錨     = 低beta，但它們的 capex 決定上面兩組的訂單，當敘事錨用
+#   其他高beta = 非 AI 線，但一樣是你會看的大型高beta
+stock_snapshot:
+  - {group: "算力核心",   ticker: NVDA,  label: "輝達"}
+  - {group: "算力核心",   ticker: AMD,   label: "超微"}
+  - {group: "算力核心",   ticker: AVGO,  label: "博通"}
+  - {group: "算力核心",   ticker: MRVL,  label: "邁威爾"}
+  - {group: "算力核心",   ticker: MU,    label: "美光"}
+  - {group: "算力核心",   ticker: TSM,   label: "台積電"}
+
+  - {group: "二階供應鏈", ticker: VRT,   label: "Vertiv"}
+  - {group: "二階供應鏈", ticker: ANET,  label: "Arista"}
+  - {group: "二階供應鏈", ticker: CRDO,  label: "Credo"}
+  - {group: "二階供應鏈", ticker: NBIS,  label: "Nebius"}
+
+  # 算力的物理上限。BE/OKLO 是高beta故事股,VST 是純發電商,三檔常常不同調。
+  - {group: "電力/能源",  ticker: BE,    label: "BloomEnergy"}
+  - {group: "電力/能源",  ticker: VST,   label: "Vistra"}
+  - {group: "電力/能源",  ticker: OKLO,  label: "Oklo"}
+
+  - {group: "雲端錨",     ticker: GOOGL, label: "谷歌"}
+  - {group: "雲端錨",     ticker: MSFT,  label: "微軟"}
+  - {group: "雲端錨",     ticker: AMZN,  label: "亞馬遜"}
+  - {group: "雲端錨",     ticker: META,  label: "Meta"}
+
+  - {group: "其他高beta", ticker: TSLA,  label: "特斯拉"}
+  - {group: "其他高beta", ticker: PLTR,  label: "Palantir"}
+
+  # 加密相關股 — 這些是「加密敘事」在美股的表達方式,跟 BTC 現貨常常不同步,
+  # 背離本身就是訊號(例:BTC 平盤但 CRCL 大漲 = 市場在買監管/基礎設施而不是幣價)。
+  - {group: "加密相關",   ticker: COIN,  label: "Coinbase"}
+  - {group: "加密相關",   ticker: CRCL,  label: "Circle"}
+  - {group: "加密相關",   ticker: GLXY,  label: "Galaxy"}
+  - {group: "加密相關",   ticker: HOOD,  label: "Robinhood"}
+  - {group: "加密相關",   ticker: MSTR,  label: "Strategy"}
+
+# 敘事連續性 — 讀取最近幾天的 archive，把「昨天的預測」餵回給模型做結算。
+continuity:
+  enabled: true
+  lookback_days: 4        # 往回找幾天才放棄（跳過週末/休市日）
+  max_chars: 1200         # 餵回模型的上限，避免吃掉太多 context

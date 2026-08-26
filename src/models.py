@@ -18,6 +18,9 @@ class NewsItem:
     price_metric: dict | None       # {"symbol": "NVDA", "pct_change": 4.2} or None
     source_count: int = 1           # incremented during dedup
     rank_score: float = 0.0
+    event_score: float = 0.0        # 0..1 — reports an event vs describes the tape
+    relevance_score: float = 0.0    # 0..1 — mentions a watched ticker/alias
+    market: str = "equity"          # "equity" | "crypto" | "macro"
     theme: str = "macro_other"
     anchor_ticker: str | None = None
 
@@ -41,8 +44,10 @@ class NewsItem:
             "tickers": self.tickers,
             "sentiment": self.sentiment,
             "region": self.region,
+            "market": self.market,
             "theme": self.theme,
             "price_metric": self.price_metric,
             "source_count": self.source_count,
+            "event_score": round(self.event_score, 3),
             "rank_score": round(self.rank_score, 4),
         }

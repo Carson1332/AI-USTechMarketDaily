@@ -17,6 +17,14 @@ REQUIRED_SECRETS = [
     "TELEGRAM_CHAT_ID",
 ]
 
+# Present → the feature turns on; absent → the pipeline runs without it.
+# Each entry lists accepted env-var spellings, canonical name first. Env vars are
+# case-sensitive on Linux, so a key written as Marketaux_API_KEY locally would silently
+# vanish in GitHub Actions — accept both spellings rather than fail there.
+OPTIONAL_SECRETS = {
+    "MARKETAUX_API_KEY": ["MARKETAUX_API_KEY", "Marketaux_API_KEY", "marketaux_api_key"],
+}
+
 
 def load_settings() -> dict:
     with open(_SETTINGS_PATH, encoding="utf-8") as f:
@@ -51,7 +59,22 @@ def load_secrets() -> dict:
             f"Missing required environment variables: {', '.join(missing)}\n"
             f"Copy .env.example to .env and fill in all values."
         )
-    return {k: os.environ[k] for k in REQUIRED_SECRETS}
+    secrets = {k: os.environ[k] for k in REQUIRED_SECRETS}
+
+    for canonical, spellings in OPTIONAL_SECRETS.items():
+        for name in spellings:
+            value = os.getenv(name)
+            if value:
+                secrets[canonical] = value
+                if name != canonical:
+                    print(
+                        f"note: found {name} in .env — rename it to {canonical}; "
+                        f"the current spelling will not resolve on Linux/CI.",
+                        file=sys.stderr,
+                    )
+                break
+
+    return secrets
 
 
 def is_mock_mode() -> bool:
